@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  flask:
+    image: desouky/flaskapp
+    deploy:
+     # mode: replicated
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    ports:
+      - "5000:5000"
