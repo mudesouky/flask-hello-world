@@ -1,0 +1,43 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.26">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.SCMTrigger>
+          <spec>* * * * *</spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.59">
+    <script>node {
+    
+    stage(&apos;SCM Check out&apos;){
+        git &apos;https://github.com/mudesouky/flask-hello-world&apos;
+    }
+    stage(&apos;Docker Build&apos;){
+        sh &apos;docker build -t desouky/flaskapp .&apos;
+    }
+    stage(&apos;Docker Push&apos;){
+        withCredentials([string(credentialsId: &apos;DockerHubPassword&apos;, variable: &apos;DockerHubPW&apos;)]) {
+            sh &quot;docker login -u desouky -p ${DockerHubPW}&quot;
+        }
+        sh &apos;docker push desouky/flaskapp&apos;
+    }
+    stage(&apos;Deploy Stack&apos;){
+        sh &apos;docker stack deploy -c docker-compose.yml cognitev&apos;
+    }
+    stage(&apos;Clean Up&apos;){
+        sh &apos;docker system prune -f&apos;
+    }
+    
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
